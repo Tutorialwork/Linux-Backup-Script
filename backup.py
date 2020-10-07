@@ -3,9 +3,10 @@ import time
 from sys import platform
 
 import config
+from logger import Logger
 
 date = time.strftime("%d-%m-%Y_%H-%M")
-
+logger = Logger("backup.log")
 
 def os_check():
     if platform == "linux" or platform == "linux2":
@@ -15,69 +16,47 @@ def os_check():
 
 
 def mysql_backup():
-    print("")
-    print("Starting backup for MySQL database...")
-    print("")
+    logger.log("INFO", "Starting backup for MySQL database...")
     tmpCheck = os.system("cd "+config.cloud_mount)
     if tmpCheck == 0:
         createBackup = os.system("cd " + config.cloud_mount + " && "
                                  "mysqldump -u " + config.mysql_user + " -p'" + config.mysql_password + "' --all-databases > mysqlbackup-" + date + ".sql")
 
         if createBackup == 0:
-            print("")
-            print("MySQL database backup successfully created")
-            print("")
+            logger.log("SUCCESS", "MySQL database backup successfully created")
         else:
-            print("")
-            print("MySQL database backup failed")
-            print("")
+            logger.log("ERROR", "MySQL database backup failed")
             os.system("cd " + config.cloud_mount + " && rm mysqlbackup-" + date + ".sql")
     else:
-        print("")
-        print("Mount not exits")
-        print("")
+        logger.log("ERROR", "Mount not exits")
 
 
 def backup():
-    print("")
-    print("Starting backup for "+str(len(config.backup_dirs))+" directories...")
-    print("")
+    logger.log("INFO", "Starting backup for "+str(len(config.backup_dirs))+" directories...")
     if len(config.backup_dirs) == 0:
-        print("")
-        print("No directories to backup")
-        print("")
+        logger.log("INFO", "No directories to backup")
     else:
         counter = 0
         for dir in config.backup_dirs:
             counter += 1
-            print("")
-            print("Starting backup for "+dir+"...")
-            print("")
+            logger.log("INFO", "Starting backup for "+dir+"...")
             status = os.system("cd " + config.cloud_mount + " && tar -czvf backup_" + str(counter) + "-" + date + ".tar.gz "+dir)
             if status == 0:
-                print("")
-                print("Backup for "+dir+" successfully")
-                print("")
+                logger.log("SUCCESS", "Backup for "+dir+" successfully")
             else:
-                print("")
-                print("Failed to backup "+dir)
-                print("")
+                logger.log("ERROR", "Failed to backup "+dir)
 
 
 def clearBackups():
-    print("")
-    print("Cleaning backup dir...")
-    print("")
+    logger.log("INFO", "Cleaning backup dir...")
     for file in os.listdir(config.cloud_mount):
         if os.path.isfile(file):
             os.remove(file)
         elif os.path.isdir(file):
             os.rmdir(file)
         else:
-            print(file + " can't be deleted!")
-    print("")
-    print("Successfully deleted old backup files")
-    print("")
+            logger.log("ERROR", file + " can't be deleted!")
+    logger.log("SUCCESS", "Successfully deleted old backup files")
 
 if os_check():
     if os.path.exists(config.cloud_mount):
@@ -87,7 +66,9 @@ if os_check():
             mysql_backup()
         backup()
     else:
-        print("Failed to create backup")
-        print(config.cloud_mount + " not exists")
+        logger.log("ERROR", "Failed to create backup")
+        logger.log("ERROR", config.cloud_mount + " not exists")
+    logger.closeFile()
 else:
-    print("Sorry but this script is only for Linux")
+    logger.log("ERROR", "Sorry but this script is only for Linux")
+    logger.closeFile()
