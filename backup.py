@@ -21,7 +21,7 @@ def mysql_backup():
     tmpCheck = os.system("cd "+config.cloud_mount)
     if tmpCheck == 0:
         createBackup = os.system("cd " + config.cloud_mount + " && "
-                                 "mysqldump -u root -p'" + config.mysql_password + "' --all-databases > mysqlbackup-" + date + ".sql")
+                                 "mysqldump -u " + config.mysql_user + " -p'" + config.mysql_password + "' --all-databases > mysqlbackup-" + date + ".sql")
 
         if createBackup == 0:
             print("")
@@ -53,10 +53,15 @@ def backup():
             print("")
             print("Starting backup for "+dir+"...")
             print("")
-            os.system("cd " + config.cloud_mount + " && tar -czvf backup_" + str(counter) + "-" + date + ".tar.gz "+dir)
-            print("")
-            print("Backup for "+dir+" successfully")
-            print("")
+            status = os.system("cd " + config.cloud_mount + " && tar -czvf backup_" + str(counter) + "-" + date + ".tar.gz "+dir)
+            if status == 0:
+                print("")
+                print("Backup for "+dir+" successfully")
+                print("")
+            else:
+                print("")
+                print("Failed to backup "+dir)
+                print("")
 
 
 def clearBackups():
@@ -75,10 +80,14 @@ def clearBackups():
     print("")
 
 if os_check():
-    if config.clear_backups:
-        clearBackups()
-    if config.mysql_backup:
-        mysql_backup()
-    backup()
+    if os.path.exists(config.cloud_mount):
+        if config.clear_backups:
+            clearBackups()
+        if config.mysql_backup:
+            mysql_backup()
+        backup()
+    else:
+        print("Failed to create backup")
+        print(config.cloud_mount + " not exists")
 else:
     print("Sorry but this script is only for Linux")
