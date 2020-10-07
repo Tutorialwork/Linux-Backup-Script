@@ -58,7 +58,25 @@ def backup():
             print("Backup for "+dir+" successfully")
             print("")
 
+
+def clearBackups():
+    print("")
+    print("Cleaning backup dir...")
+    print("")
+    for file in os.listdir(config.cloud_mount):
+        if os.path.isfile(file):
+            os.remove(file)
+        elif os.path.isdir(file):
+            os.rmdir(file)
+        else:
+            print(file + " can't be deleted!")
+    print("")
+    print("Successfully deleted old backup files")
+    print("")
+
 if os_check():
+    if config.clear_backups:
+        clearBackups()
     if config.mysql_backup:
         mysql_backup()
     backup()
