@@ -3,7 +3,7 @@ mysql_user = "root"
 mysql_password = "securePassword"
 
 # Location where the backup files will be stored
-backup_location = "/Volumes/Samsung_T5/BackupTest"
+backup_location = "/media/cloud"
 # Locations to backup
 backup_dirs = ["/var/www", "/etc"]
 
